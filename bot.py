@@ -1,168 +1,160 @@
+# Import for the Web Bot
 from botcity.web import WebBot, Browser, By
-from botcity.maestro import *
-from webdriver_manager.chrome import ChromeDriverManager
-import openpyxl
-from openpyxl.chart import Reference, BarChart3D
 
+# Import for integration with BotCity Maestro SDK
+from botcity.maestro import *
 
 # Disable errors if we are not connected to Maestro
 BotMaestroSDK.RAISE_NOT_CONNECTED = False
 
-
-def pesquisar_cidade(bot, cidade):
-    bot.browse("https://www.google.com")
-    bot.wait(2000)
-# https://ws.apicep.com/cep.json?code=69083000
-    while len(bot.find_elements('//*[@id="APjFqb"]', By.XPATH)) < 1:
-        bot.wait(1000)
-        print('carrengado.')
-    bot.find_element('//*[@id="APjFqb"]', By.XPATH).send_keys(cidade)
-    bot.wait(1000)
-    bot.enter()
+from webdriver_manager.chrome import ChromeDriverManager
 
 
-def extrair_dados_clima(bot):
 
-    count = 0
-    dados = []
-    while True:
-        count += 1
-        dia_semana = bot.find_element(
-            f'//*[@id="wob_dp"]/div[{count}]/div[1]', By.XPATH).text
-        elemento_clicavel = bot.find_element(
-            f'//*[@id="wob_dp"]/div[{count}]/div[1]', By.XPATH)
-        elemento_clicavel.click()
-        max = bot.find_element(
-            f'//*[@id="wob_dp"]/div[{count}]/div[3]/div[1]/span[1]', By.XPATH).text
-        min = bot.find_element(
-            f'//*[@id="wob_dp"]/div[{count}]/div[3]/div[2]/span[1]', By.XPATH).text
-        umidade = bot.find_element('//*[@id="wob_hm"]', By.XPATH).text
-        umidade = str(umidade).replace("%", "")
-        bot.tab()
-        bot.enter()
-        dados.append(
-            {'umidade': umidade, 'dia_semana': dia_semana, 'max': max, 'min': min})
-        if count == 8:
-            break
-    return dados
+class Bot(WebBot):
 
+    def pesquisar_cidade(self, cidade: str) -> None:
+        while len(self.find_elements('//*[@id="search"]', By.XPATH)) < 1:
+            self.wait(1000)
+            print('carregando...')
+            
+        self.find_element('//*[@id="search"]', By.XPATH).send_keys(cidade)
+        self.wait(2000)#Aguarda determinados segundos
+        self.page_down()
+        self.wait(1000)#Aguarda determinados segundos
+        self.enter()
+        self.wait(2000)#Aguarda determinados segundos
+        self.find_element('//*[@id="previsao"]/div[3]/a[1]/button', By.XPATH).click() #Btn proximos dias
 
-def salva_dados_temperatura_na_planilha(dados):  # dados é uma lista
-    arquivo = 'dados.xlsx'
-    wb = openpyxl.load_workbook(arquivo)
-
-    aba_atual = wb.active
-    aba_atual[f'A1'] = ' '
-    aba_atual[f'B1'] = 'MAX'
-    aba_atual[f'C1'] = 'MIN'
-
-    linha = 2
-    for dado in dados:
-        if linha > 9 : break
-        aba_atual[f'A{linha}'] = dado['dia_semana']
-        aba_atual[f'B{linha}'] = int(dado['max'])
-        aba_atual[f'C{linha}'] = int(dado['min'])
-        linha+=1
-    wb.save(arquivo)
-
-def salva_dados_umidade_na_planilha(dados):
-    arquivo = 'dados.xlsx'
-    wb = openpyxl.load_workbook(arquivo)
-
-    aba_atual = wb.active
-    aba_atual[f'A20'] = ' '
-    aba_atual[f'B20'] = 'Umidade %'
-
-    linha = 21
-    for dado in dados:
-        if linha > 29 : break
-        aba_atual[f'A{linha}'] = dado['dia_semana']
-        aba_atual[f'B{linha}'] = int(dado['umidade'])
-        linha+=1
-    wb.save(arquivo)
     
-def gerar_grafico(arquivo_excel, posicao_grafico='E1'):
-    # # Carregar o arquivo Excel existente
-    wb = openpyxl.load_workbook(arquivo_excel)
-    aba_atual = wb.active
-    wb.save('dados.xlsx')
+    def selecionar_aba(self):
+        """Seleciona a segunda aba do navegador"""
+        abas_abertas = self.get_tabs()
+        nova_aba = abas_abertas[1]
+        self.activate_tab(nova_aba)
 
-    if aba_atual.max_row < 2:
-        print("Não há dados suficientes para gerar um gráfico.")
-        return
+
+
+    def extrair_dados_clima(self):
+        self.selecionar_aba()
+
+        while len(self.find_elements('//*[@id="containerFullScreen"]/div/div/section[1]/div/font/b', By.XPATH)) < 1:
+            print('carregando...')
+            self.wait(1000)
+
+        coleta = {
+            'dia1': {},
+            'dia2': {},
+            'dia3': {},
+            'dia4': {},
+            'dia5': {},
+        }
+
+        dia1 = self.find_element('//*[@id="containerFullScreen"]/div/div/section[1]/div/font/b', By.XPATH).text
+        dia2 = self.find_element('//*[@id="containerFullScreen"]/div/div/section[4]/div/font/b', By.XPATH).text
+        dia3 = self.find_element('//*[@id="containerFullScreen"]/div/div/div[1]/section[1]/div/font/b', By.XPATH).text
+        dia4 = self.find_element('//*[@id="containerFullScreen"]/div/div/div[2]/section[1]/div/font/b', By.XPATH).text
+        dia5 = self.find_element('//*[@id="containerFullScreen"]/div/div/div[3]/section[1]/div/font/b', By.XPATH).text
+
+        dia1 = dia1.split('-')
+        dia2 = dia2.split('-')
+        dia3 = dia3.split('-')
+        dia4 = dia4.split('-')
+        dia5 = dia5.split('-')
+
+        coleta['dia1']['data'] = dia1[1]
+        coleta['dia2']['data'] = dia2[1]
+        coleta['dia3']['data'] = dia3[2]
+        coleta['dia4']['data'] = dia4[2]
+        coleta['dia5']['data'] = dia5[2]        
+        
+
+        print(coleta)
+
+
+
+        
+ 
+
+
+
+
+
+
+            
+
     
-    chart = BarChart3D()
-    valores = Reference(aba_atual,           
-                   min_col=2,  
-                   max_col=3, 
-                   min_row=1,  
-                   max_row=9) 
-    dias_semana = Reference(aba_atual, 
-                 min_col=1, 
-                 max_col=1, 
-                 min_row=2, 
-                 max_row=9)
-    chart.add_data(valores, titles_from_data=True)
-    chart.title = "Temperatura Manaus,AM"
-    chart.x_axis.title = 'Dias da Semana'
-    chart.y_axis.title = 'Temperatura em Graus'
-    aba_atual.add_chart(chart,posicao_grafico)
-    chart.set_categories(dias_semana)
-    wb.save(arquivo_excel)
-
-    chart2 = BarChart3D()
-
-    valores_umi = Reference(aba_atual,           
-                   min_col=2,  
-                   max_col=3, 
-                   min_row=20,  
-                   max_row=29) 
-    dias_semana = Reference(aba_atual, 
-                 min_col=1, 
-                 max_col=1, 
-                 min_row=20, 
-                 max_row=29)
-    chart2.title = "Umidade em %"
-    chart2.add_data(valores_umi, titles_from_data=True)
-    chart2.set_categories(dias_semana)
-    aba_atual.add_chart(chart2,'E21')
-    wb.save(arquivo_excel)
-
-def main():
-
-    maestro = BotMaestroSDK.from_sys_args()
-    execution = maestro.get_execution()
-
-    bot = WebBot()
-
-    bot.headless = False
-
-    bot.browser = Browser.CHROME
-
-    bot.driver_path = ChromeDriverManager().install()
-
-    try:
-        arquivo = 'dados.xlsx'
-        cidade = "clima Manaus, AM"
-        pesquisar_cidade(bot, cidade)
-        bot.wait(1000)
-        dados=extrair_dados_clima(bot)
-        salva_dados_temperatura_na_planilha(dados)
-        salva_dados_umidade_na_planilha(dados)
-        gerar_grafico(arquivo)
-
-    except Exception as ex:
-        print(ex)
-        bot.save_screenshot('erro.png')
-
-    finally:
-        bot.wait(2000)
-        bot.stop_browser()
 
 
-def not_found(label):
-    print(f"Element not found: {label}")
+    def configuracoes_bot(self) -> None:
+        # Configure whether or not to run on headless mode
+        self.headless = False
+
+        # Uncomment to change the default Browser to Firefox
+        self.browser = Browser.CHROME
+
+        # Uncomment to set the WebDriver path
+        self.driver_path = ChromeDriverManager().install()
+
+    
+    def abrir_site(self, url: str = "https://www.botcity.dev") -> None:
+        try:
+            # Opens the BotCity website.
+            self.browse(url)
+            self.maximize_window()
+        except Exception as ex:
+            print(f'Erro ao tentar abrir o site: {ex}')
+            self.save_screenshot('Erro ao abrir o site.png')
+            raise ex
 
 
-if __name__ == '__main__':
-    main()
+
+    def action(self, execution = None):
+        # Runner passes the server url, the id of the task being executed,
+        # the access token and the parameters that this task receives (when applicable).
+        maestro = BotMaestroSDK.from_sys_args()
+        ## Fetch the BotExecution with details from the task, including parameters
+        execution = maestro.get_execution()
+
+        print(f"Task ID is: {execution.task_id}")
+        print(f"Task Parameters are: {execution.parameters}")
+
+        # Implement here your logic...
+
+        try:
+            self.configuracoes_bot()
+            self.abrir_site(r'https://portal.inmet.gov.br/')
+
+            self.pesquisar_cidade('Manaus')
+            
+            self.extrair_dados_clima()
+           
+
+        except Exception as ex:
+            print('Erro: ', ex)
+            self.save_screenshot('Erro.png')
+        
+        finally:
+    
+            # Wait 3 seconds before closing
+            self.wait(6000)
+
+            # Finish and clean up the Web Browser
+            # You MUST invoke the stop_browser to avoid
+            # leaving instances of the webdriver open
+            self.stop_browser()
+
+            # Uncomment to mark this task as finished on BotMaestro
+            maestro.finish_task(
+                task_id=execution.task_id,
+                status=AutomationTaskFinishStatus.SUCCESS,
+                message="Task Finished OK."
+            )
+
+
+    def not_found(self, label):
+        print(f"Element not found: {label}")
+
+
+if _name_ == '_main_':
+    Bot.main()
