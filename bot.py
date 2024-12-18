@@ -37,6 +37,7 @@ class Bot(WebBot):
 
     def extrair_dados_clima(self):
         self.selecionar_aba()
+        self.wait(2000)
 
         while len(self.find_elements('//*[@id="containerFullScreen"]/div/div/section[1]/div/font/b', By.XPATH)) < 1:
             print('carregando...')
@@ -70,12 +71,23 @@ class Bot(WebBot):
         
 
         print(coleta)
-
-        temp_min = self.find_element('//*[@id="containerFullScreen"]/div/div/section[2]/div[1]/font[1]',By.XPATH).text
-        temp_max = self.find_element('//*[@id="containerFullScreen"]/div/div/section[2]/div[2]/font[1]',By.XPATH).text
-                                    
-
-
+        sections= ['2','5','9','13','17']
+        for i in sections:
+            #quar
+            temp_min = self.find_element(f'//*[@id="containerFullScreen"]/div/div/section[{i}]/div[1]/font[1]',By.XPATH).text
+            temp_max = self.find_element(f'//*[@id="containerFullScreen"]/div/div/section[{i}]/div[2]/font[1]',By.XPATH).text
+            self.wait(1000)
+            umidade_max = self.find_element(f'//*[@id="containerFullScreen"]/div/div/section[{i}]/div[3]/font',By.XPATH)
+            umidade_max.text
+            self.wait(1000)                
+            umidade_min = self.find_element(f'//*[@id="containerFullScreen"]/div/div/section[{i}]/div[4]/font',By.XPATH)
+            umidade_min.text
+            print(f'temp max{temp_max}') 
+            print(f'temp min{temp_min}') 
+            print(f'umi max{umidade_max}') 
+            print(f'umi min{umidade_min}') 
+                                
+        
         
  
 
@@ -126,8 +138,9 @@ class Bot(WebBot):
 
         try:
             self.configuracoes_bot()
+            
             self.abrir_site(r'https://portal.inmet.gov.br/')
-
+            
             self.pesquisar_cidade('Manaus')
             
             self.extrair_dados_clima()
