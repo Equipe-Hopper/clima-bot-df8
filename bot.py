@@ -71,6 +71,9 @@ class Bot(WebBot):
 
         print(coleta)
 
+        temp_min = self.find_element('//*[@id="containerFullScreen"]/div/div/section[2]/div[1]/font[1]',By.XPATH).text
+        temp_max = self.find_element('//*[@id="containerFullScreen"]/div/div/section[2]/div[2]/font[1]',By.XPATH).text
+                                    
 
 
         
@@ -156,5 +159,5 @@ class Bot(WebBot):
         print(f"Element not found: {label}")
 
 
-if _name_ == '_main_':
+if __name__ == '__main__':
     Bot.main()
