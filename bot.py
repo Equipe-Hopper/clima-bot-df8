@@ -151,8 +151,8 @@ class Bot(WebBot):
 
         # grafico umidade
         plt.figure(figsize=(12, 6))
-        plt.bar(x - largura_barras / 2, df['Umidade Mínima'], width=largura_barras, label='Umidade Mínima', color='green')
-        plt.bar(x + largura_barras / 2, df['Umidade Máxima'], width=largura_barras, label='Umidade Máxima', color='orange')
+        plt.bar(x - largura_barras / 2, df['Umidade Mínima'], width=largura_barras, label='Umidade Mínima', color='#808080')
+        plt.bar(x + largura_barras / 2, df['Umidade Máxima'], width=largura_barras, label='Umidade Máxima', color='#A40033')
 
         plt.title("Umidade ao longo da semana - Manaus, AM", fontsize=14)
         plt.xlabel("Dia", fontsize=12)
