@@ -133,7 +133,7 @@ class Bot(WebBot):
 
         # Grafico temp
         largura_barras = 0.4  
-        x = np.arange(len(df['Dia']))  
+        x = np.arange(len(df['Data']))  
 
         plt.figure(figsize=(12, 6))
         plt.bar(x - largura_barras / 2, df['Temperatura Mínima'], width=largura_barras, label='Temp. Mínima', color='blue')
@@ -142,7 +142,7 @@ class Bot(WebBot):
         plt.title("Temperatura ao longo da semana - Manaus, AM", fontsize=14)
         plt.xlabel("Dia", fontsize=12)
         plt.ylabel("Temperatura (°C)", fontsize=12)
-        plt.xticks(x, df['Dia'], fontsize=10)  
+        plt.xticks(x, df['Data'], fontsize=10)  
         plt.legend()
         plt.grid(axis='y', linestyle='--', alpha=0.7)
         plt.tight_layout()
@@ -157,7 +157,7 @@ class Bot(WebBot):
         plt.title("Umidade ao longo da semana - Manaus, AM", fontsize=14)
         plt.xlabel("Dia", fontsize=12)
         plt.ylabel("Umidade (%)", fontsize=12)
-        plt.xticks(x, df['Dia'], fontsize=10)  
+        plt.xticks(x, df['Data'], fontsize=10)  
         plt.legend()
         plt.grid(axis='y', linestyle='--', alpha=0.7)
         plt.tight_layout()
