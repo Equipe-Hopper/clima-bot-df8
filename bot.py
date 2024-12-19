@@ -9,6 +9,8 @@ BotMaestroSDK.RAISE_NOT_CONNECTED = False
 
 from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
+from openpyxl import load_workbook
+from openpyxl.chart import BarChart3D, Reference
 
 
 
@@ -123,6 +125,48 @@ class Bot(WebBot):
         dataframe.to_excel('dados climaticos.xlsx', index=False)
 
 
+
+# Correção do método gerar_grafico para que use o self corretamente
+    def gerar_grafico(self, arquivo_excel, posicao_grafico='A9'):
+        # Carregar o arquivo Excel existente
+        wb = load_workbook(arquivo_excel)
+        aba_atual = wb.active
+
+        # Verificar se há dados suficientes para gerar o gráfico
+        if aba_atual.max_row < 2:
+            print("Não há dados suficientes para gerar um gráfico.")
+            return
+
+                # Gráfico de barras 3D para Temperatura
+
+        # Gráfico de barras 3D para Temperatura
+        chart = BarChart3D()
+        valores_temperatura = Reference(aba_atual, min_col=3, max_col=4, min_row=1, max_row=6)  # Inclui cabeçalhos
+        dias_temperatura = Reference(aba_atual, min_col=1, min_row=2, max_row=6)  # Apenas os dias
+        chart.add_data(valores_temperatura, titles_from_data=True)
+        chart.title = "Temperatura Manaus,AM"
+        chart.x_axis.title = 'Dias da Semana'
+        chart.y_axis.title = 'Temperatura em Graus'
+        chart.set_categories(dias_temperatura)
+        aba_atual.add_chart(chart, "E10")  # Insere o gráfico na posição desejada
+
+        # Gráfico de barras 3D para Umidade
+        chart2 = BarChart3D()
+        valores_umidade = Reference(aba_atual, min_col=5, max_col=6, min_row=1, max_row=6)  # Inclui cabeçalhos
+        dias_umidade = Reference(aba_atual, min_col=1, min_row=2, max_row=6)  # Apenas os dias
+        chart2.add_data(valores_umidade, titles_from_data=True)
+        chart2.title = "Umidade em %"
+        chart2.x_axis.title = 'Dias da Semana'
+        chart2.y_axis.title = 'Umidade (%)'
+        chart2.set_categories(dias_umidade)
+        aba_atual.add_chart(chart2, "A25")  # Insere o gráfico na posição desejada
+
+
+
+        # Salvar as alterações no arquivo Excel
+        wb.save(arquivo_excel)
+        print(f"Gráficos gerados e salvos no arquivo {arquivo_excel}")
+
     def configuracoes_bot(self) -> None:
         # Configure whether or not to run on headless mode
         self.headless = False
@@ -168,7 +212,8 @@ class Bot(WebBot):
             dados = self.extrair_dados_clima()
 
             self.transformar_em_planilha(dados)
-           
+            arquivo_excel = "dados climaticos.xlsx"
+            self.gerar_grafico(arquivo_excel)
 
         except Exception as ex:
             print('Erro: ', ex)
