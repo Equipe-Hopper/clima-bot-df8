@@ -8,6 +8,7 @@ from botcity.maestro import *
 BotMaestroSDK.RAISE_NOT_CONNECTED = False
 
 from webdriver_manager.chrome import ChromeDriverManager
+import pandas as pd
 
 
 
@@ -32,8 +33,6 @@ class Bot(WebBot):
         abas_abertas = self.get_tabs()
         nova_aba = abas_abertas[1]
         self.activate_tab(nova_aba)
-
-
 
     def extrair_dados_clima(self):
         self.selecionar_aba()
@@ -67,38 +66,61 @@ class Bot(WebBot):
         coleta['dia2']['data'] = dia2[1]
         coleta['dia3']['data'] = dia3[2]
         coleta['dia4']['data'] = dia4[2]
-        coleta['dia5']['data'] = dia5[2]        
-        
+        coleta['dia5']['data'] = dia5[2] 
 
-        print(coleta)
-        sections= ['2','5','9','13','17']
-        for i in sections:
-            #quar
-            temp_min = self.find_element(f'//*[@id="containerFullScreen"]/div/div/section[{i}]/div[1]/font[1]',By.XPATH).text
-            temp_max = self.find_element(f'//*[@id="containerFullScreen"]/div/div/section[{i}]/div[2]/font[1]',By.XPATH).text
+        lista_dia1 = []
+        lista_dia2 = []
+        lista_dia3 = []
+        lista_dia4 = []
+        lista_dia5 = []
+        
+        print('Primeiro Section')
+        for i in range(1, 5):
+            lista_dia1.append(self.find_element(f'//*[@id="containerFullScreen"]/div/div/section[2]/div[{i}]/font', By.XPATH).text[:2])
+
+
+        print('Terceira Section')
+        for i in range(1, 5):
+            lista_dia3.append(self.find_element(f'//*[@id="containerFullScreen"]/div/div/div[1]/section[3]/div[{i}]/font', By.XPATH).text[:2])
+
+        print('Quarta Section')
+        for i in range(1, 5):
+            lista_dia4.append(self.find_element(f'//*[@id="containerFullScreen"]/div/div/div[2]/section[3]/div[{i}]/font', By.XPATH).text[:2])
+
+        print('Quinta Section')
+        for i in range(1, 5):
+            lista_dia5.append(self.find_element(f'//*[@id="containerFullScreen"]/div/div/div[3]/section[3]/div[{i}]/font', By.XPATH).text[:2])
+
+        print('Segunda Section')
+        for i in range(1, 5):
             self.wait(1000)
-            umidade_max = self.find_element(f'//*[@id="containerFullScreen"]/div/div/section[{i}]/div[3]/font',By.XPATH)
-            umidade_max.text
-            self.wait(1000)                
-            umidade_min = self.find_element(f'//*[@id="containerFullScreen"]/div/div/section[{i}]/div[4]/font',By.XPATH)
-            umidade_min.text
-            print(f'temp max{temp_max}') 
-            print(f'temp min{temp_min}') 
-            print(f'umi max{umidade_max}') 
-            print(f'umi min{umidade_min}') 
-                                
+            lista_dia2.append(self.find_element(f'//*[@id="containerFullScreen"]/div/div/section[5]/div[{i}]/font', By.XPATH).text[:2])
+
+        coleta['dia1']['dados'] = lista_dia1
+        coleta['dia2']['dados'] = lista_dia2
+        coleta['dia3']['dados'] = lista_dia3
+        coleta['dia4']['dados'] = lista_dia4
+        coleta['dia5']['dados'] = lista_dia5 
+
+
+        return coleta
+
+    def transformar_em_planilha(self, dicionario):
         
-        
- 
+        linhas = []
+        for dia, valores in dicionario.items():
+            linha = {
+                'Dia': dia,
+                'Data': valores['data'].strip(),  
+                'Temperatura Mínima': valores['dados'][0],
+                'Temperatura Máxima': valores['dados'][1],
+                'Umidade Máxima': valores['dados'][2],
+                'Umidade Mínima': valores['dados'][3],
+            }
+            linhas.append(linha)
 
-
-
-
-
-
-            
-
-    
+        dataframe = pd.DataFrame(linhas)
+        dataframe.to_excel('dados climaticos.xlsx', index=False)
 
 
     def configuracoes_bot(self) -> None:
@@ -143,7 +165,9 @@ class Bot(WebBot):
             
             self.pesquisar_cidade('Manaus')
             
-            self.extrair_dados_clima()
+            dados = self.extrair_dados_clima()
+
+            self.transformar_em_planilha(dados)
            
 
         except Exception as ex:
