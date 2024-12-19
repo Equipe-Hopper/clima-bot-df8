@@ -10,6 +10,7 @@ BotMaestroSDK.RAISE_NOT_CONNECTED = False
 from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 class Bot(WebBot):
@@ -131,25 +132,32 @@ class Bot(WebBot):
         print(df)
 
         # Grafico temp
-        plt.figure(figsize=(10, 6))
-        plt.bar(df['Dia'], df['Temperatura Mínima'], label='Temp. Mínima', color='blue', alpha=0.7)
-        plt.bar(df['Dia'], df['Temperatura Máxima'], label='Temp. Máxima', color='red', alpha=0.7)
+        largura_barras = 0.4  
+        x = np.arange(len(df['Dia']))  
+
+        plt.figure(figsize=(12, 6))
+        plt.bar(x - largura_barras / 2, df['Temperatura Mínima'], width=largura_barras, label='Temp. Mínima', color='blue')
+        plt.bar(x + largura_barras / 2, df['Temperatura Máxima'], width=largura_barras, label='Temp. Máxima', color='red')
+
         plt.title("Temperatura ao longo da semana - Manaus, AM", fontsize=14)
         plt.xlabel("Dia", fontsize=12)
         plt.ylabel("Temperatura (°C)", fontsize=12)
+        plt.xticks(x, df['Dia'], fontsize=10)  
         plt.legend()
         plt.grid(axis='y', linestyle='--', alpha=0.7)
         plt.tight_layout()
-        plt.savefig('resources/grafico_temperaturas.png')  
+        plt.savefig('resources/grafico_temperatura.png')  
         plt.show()
 
-        # Grafico umidade
-        plt.figure(figsize=(10, 6))
-        plt.bar(df['Dia'], df['Umidade Mínima'], label='Umidade Mínima', color='green', alpha=0.7)
-        plt.bar(df['Dia'], df['Umidade Máxima'], label='Umidade Máxima', color='orange', alpha=0.7)
+        # grafico umidade
+        plt.figure(figsize=(12, 6))
+        plt.bar(x - largura_barras / 2, df['Umidade Mínima'], width=largura_barras, label='Umidade Mínima', color='green')
+        plt.bar(x + largura_barras / 2, df['Umidade Máxima'], width=largura_barras, label='Umidade Máxima', color='orange')
+
         plt.title("Umidade ao longo da semana - Manaus, AM", fontsize=14)
         plt.xlabel("Dia", fontsize=12)
         plt.ylabel("Umidade (%)", fontsize=12)
+        plt.xticks(x, df['Dia'], fontsize=10)  
         plt.legend()
         plt.grid(axis='y', linestyle='--', alpha=0.7)
         plt.tight_layout()
