@@ -136,17 +136,17 @@ class Bot(WebBot):
         x = np.arange(len(df['Data']))  
 
         plt.figure(figsize=(12, 6))
-        plt.bar(x - largura_barras / 2, df['Temperatura Mínima'], width=largura_barras, label='Temp. Mínima', color='blue')
-        plt.bar(x + largura_barras / 2, df['Temperatura Máxima'], width=largura_barras, label='Temp. Máxima', color='red')
+        plt.plot(df['Data'], df['Temperatura Mínima'], marker='o', linestyle='-', color='#808080', label='Temp. Mínima')
+        plt.plot(df['Data'], df['Temperatura Máxima'], marker='o', linestyle='-', color='#A40033', label='Temp. Máxima')
 
         plt.title("Temperatura ao longo da semana - Manaus, AM", fontsize=14)
         plt.xlabel("Dia", fontsize=12)
         plt.ylabel("Temperatura (°C)", fontsize=12)
-        plt.xticks(x, df['Data'], fontsize=10)  
+        plt.xticks(fontsize=10)
         plt.legend()
-        plt.grid(axis='y', linestyle='--', alpha=0.7)
+        plt.grid(linestyle='--', alpha=0.7)
         plt.tight_layout()
-        plt.savefig('resources/grafico_temperatura.png')  
+        plt.savefig('resources/grafico_temperatura.png')  # Salva o gráfico como imagem
         plt.show()
 
         # grafico umidade
